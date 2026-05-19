@@ -129,6 +129,37 @@ def run(
     """Run a playbook against a real Sentinel incident"""
     console.print(f"Running playbook: [bold]{playbook}[/]")
 
+@app.command()
+async def enrich(
+    incident_file: Path = typer.Argument(..., help="Path to incident JSON file"),
+    output: Path = typer.Option(None, "--output", "-o", help="Output enriched JSON file"),
+    profile: str = typer.Option("default", "--profile", "-p"),
+):
+    """Enrich a Sentinel incident with additional context"""
+    from .enrich.enricher import IncidentEnricher
+    import json
+    
+    console.print(f"[bold cyan]Enriching incident:[/] {incident_file}")
+    
+    cfg = AzSOARConfig.load(profile)
+    enricher = IncidentEnricher(cfg)
+    
+    try:
+        with open(incident_file) as f:
+            incident = json.load(f)
+        
+        enriched = await enricher.enrich_incident(incident)
+        
+        if output:
+            output_path = Path(output)
+            output_path.write_text(json.dumps(enriched, indent=2))
+            console.print(f"[green]✅ Enriched incident saved to:[/] {output_path}")
+        else:
+            console.print_json(data=enriched)
+            
+    except Exception as e:
+        console.print(f"[red]❌ Enrichment failed:[/] {e}")
+
 
 if __name__ == "__main__":
     app()
