@@ -19,3 +19,15 @@
 pip install azsoar
 azsoar --help
 azsoar generate phishing-response --output ./playbooks
+```
+## Documentation
+
+- Installation
+- Usage Guide
+- Available Templates
+
+## Security Disclaimer
+This tool is for authorized security operations only. Use only on environments you own or have explicit permission to automate.
+
+## Contributing
+Pull requests welcome! See CONTRIBUTING.md
