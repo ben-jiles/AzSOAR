@@ -130,14 +130,15 @@ def run(
     console.print(f"Running playbook: [bold]{playbook}[/]")
 
 @app.command()
-async def enrich(
+def enrich(
     incident_file: Path = typer.Argument(..., help="Path to incident JSON file"),
     output: Path = typer.Option(None, "--output", "-o", help="Output enriched JSON file"),
     profile: str = typer.Option("default", "--profile", "-p"),
 ):
     """Enrich a Sentinel incident with additional context"""
-    from .enrich.enricher import IncidentEnricher
+    import asyncio
     import json
+    from .enrich.enricher import IncidentEnricher
     
     console.print(f"[bold cyan]Enriching incident:[/] {incident_file}")
     
@@ -148,7 +149,8 @@ async def enrich(
         with open(incident_file) as f:
             incident = json.load(f)
         
-        enriched = await enricher.enrich_incident(incident)
+        # Run the async enricher
+        enriched = asyncio.run(enricher.enrich_incident(incident))
         
         if output:
             output_path = Path(output)
