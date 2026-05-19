@@ -1,0 +1,12 @@
+{
+  "id": "inc-12345",
+  "properties": {
+    "title": "Suspicious Sign-in",
+    "severity": "Medium",
+    "additionalData": {
+      "entities": [
+        {"type": "account", "userPrincipalName": "user@yourdomain.com"}
+      ]
+    }
+  }
+}
