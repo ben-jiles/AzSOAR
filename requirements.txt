@@ -1,1 +1,8 @@
-
+typer>=0.9.0
+azure-identity>=1.16.0
+azure-mgmt-logic
+azure-mgmt-monitor
+msgraph-sdk
+pyyaml
+rich
+jinja2
