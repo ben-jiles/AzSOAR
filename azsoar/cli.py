@@ -89,15 +89,27 @@ def login():
         console.print(f"[red]❌ Authentication failed:[/] {e}")
 
 
-# Placeholder commands (we'll implement these in later tasks)
 @app.command()
 def generate(
-    template: str = typer.Argument(..., help="Template name (e.g. phishing-response)"),
-    output: Path = typer.Option("./playbooks", "--output", "-o"),
+    template: str = typer.Argument(..., help="Template name (phishing-response, identity-compromise, ransomware)"),
+    output: Path = typer.Option("./playbooks", "--output", "-o", help="Output directory"),
+    name: str = typer.Option(None, "--name", help="Custom playbook name"),
+    profile: str = typer.Option("default", "--profile", "-p"),
 ):
     """Generate a new SOAR playbook from template"""
-    console.print(f"Generating playbook from template: [bold]{template}[/]")
-    # Implementation in Task 4
+    from .generator import PlaybookGenerator
+    
+    console.print(f"[bold cyan]Generating playbook:[/] [bold]{template}[/]")
+    
+    cfg = AzSOARConfig.load(profile)
+    generator = PlaybookGenerator(cfg)
+    
+    try:
+        playbook_path = generator.generate(template, output, name)
+        console.print(f"[green]✅ Successfully generated playbook at:[/] {playbook_path}")
+        console.print(f"[yellow]Next step:[/] Deploy with: az deployment group create ...")
+    except Exception as e:
+        console.print(f"[red]❌ Generation failed:[/] {e}")
 
 
 @app.command()
