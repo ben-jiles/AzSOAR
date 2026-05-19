@@ -162,6 +162,40 @@ def enrich(
     except Exception as e:
         console.print(f"[red]❌ Enrichment failed:[/] {e}")
 
+@app.command()
+def action(
+    name: str = typer.Argument(..., help="Action name (isolate-vm, revoke-sessions, force-password-reset, block-ip, disable-user)"),
+    user: str = typer.Option(None, "--user", help="User Principal Name"),
+    vm: str = typer.Option(None, "--vm", help="VM Name"),
+    rg: str = typer.Option(None, "--rg", help="Resource Group"),
+    ip: str = typer.Option(None, "--ip", help="IP Address to block"),
+    profile: str = typer.Option("default", "--profile", "-p"),
+):
+    """Execute a single response action"""
+    import asyncio
+    from .actions.actions import ResponseActions
+    
+    console.print(f"[bold cyan]Executing action:[/] {name}")
+    
+    cfg = AzSOARConfig.load(profile)
+    actions = ResponseActions(cfg)
+    
+    try:
+        # Run async action library from sync CLI
+        result = asyncio.run(
+            actions.execute(
+                name.replace("-", "_"),   # normalize name
+                resource_group=rg,
+                vm_name=vm,
+                user_principal=user,
+                ip_address=ip,
+            )
+        )
+        console.print_json(data=result)
+        
+    except Exception as e:
+        console.print(f"[red]❌ Action failed:[/] {e}")
+
 
 if __name__ == "__main__":
     app()
