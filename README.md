@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-![GitHub stars](https://img.shields.io/github/stars/YOURUSERNAME/azsoar)
+![GitHub stars](https://img.shields.io/github/stars/ben-jiles/azsoar)
 
 **A modern Python framework to build, test, and run advanced SOAR playbooks for Microsoft Sentinel.**
 
