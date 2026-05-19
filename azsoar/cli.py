@@ -178,18 +178,12 @@ def action(
     console.print(f"[bold cyan]Executing action:[/] {name}")
     
     cfg = AzSOARConfig.load(profile)
-    actions = ResponseActions(cfg)
+    actions_obj = ResponseActions(cfg)
     
     try:
-        # Run async action library from sync CLI
+        # Keep original kebab-case for consistency with dictionary keys
         result = asyncio.run(
-            actions.execute(
-                name.replace("-", "_"),   # normalize name
-                resource_group=rg,
-                vm_name=vm,
-                user_principal=user,
-                ip_address=ip,
-            )
+            actions_obj.execute(name, resource_group=rg, vm_name=vm, user_principal=user, ip_address=ip)
         )
         console.print_json(data=result)
         
