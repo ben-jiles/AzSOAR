@@ -40,22 +40,39 @@ def config(
     tenant: str = typer.Option(None, "--tenant", help="Azure Tenant ID"),
     subscription: str = typer.Option(None, "--subscription", help="Subscription ID"),
     workspace: str = typer.Option(None, "--workspace", help="Sentinel Workspace ID"),
-    save: bool = True,
+    resource_group: str = typer.Option(None, "--rg", help="Default Resource Group"),
+    auth: str = typer.Option(None, "--auth", help="Auth method: default, cli, managed, sp"),
+    profile: str = typer.Option("default", "--profile", "-p"),
+    show: bool = typer.Option(False, "--show", help="Show current configuration"),
 ):
-    """Configure Azure connection settings"""
-    cfg = AzSOARConfig.load()
+    """View or update AzSOAR configuration"""
+    cfg = AzSOARConfig.load(profile)
 
+    if show:
+        console.print(cfg.model_dump_json(indent=2))
+        return
+
+    updated = False
     if tenant:
         cfg.tenant_id = tenant
+        updated = True
     if subscription:
         cfg.subscription_id = subscription
+        updated = True
     if workspace:
         cfg.workspace_id = workspace
+        updated = True
+    if resource_group:
+        cfg.resource_group = resource_group
+        updated = True
+    if auth:
+        cfg.auth_method = auth
+        updated = True
 
-    if save:
-        cfg.save()
-        console.print("[green]✅ Configuration saved![/]")
+    if updated:
+        cfg.save(profile)
     else:
+        console.print(f"[cyan]Current configuration (profile: {profile}):[/]")
         console.print(cfg.model_dump_json(indent=2))
 
 
