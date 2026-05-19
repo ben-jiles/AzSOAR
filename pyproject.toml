@@ -3,19 +3,16 @@ name = "azsoar"
 version = "0.1.0"
 description = "Azure Sentinel SOAR Automation Framework"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 requires-python = ">=3.10"
-authors = [{name = "YOUR NAME", email = "your@email.com"}]
-keywords = ["azure", "sentinel", "soar", "security", "automation"]
+authors = [{ name = "Benjamin Jiles", email = "ben at cyphershell dot tech" }]   # Change as needed
+keywords = ["azure", "sentinel", "soar", "security", "automation", "incident-response"]
 
 dependencies = [
     "typer>=0.9.0",
-    "azure-identity>=1.25.0",
-    "azure-mgmt-logic>=10.0.0",
-    "azure-mgmt-monitor>=6.0.0",
-    "msgraph-sdk>=1.0.0",
-    "pyyaml>=6.0",
     "rich>=13.0.0",
+    "azure-identity>=1.25.0",
+    "pyyaml>=6.0",
     "jinja2>=3.1.0",
 ]
 
@@ -24,3 +21,14 @@ dev = ["pytest", "black", "ruff", "mypy"]
 
 [project.scripts]
 azsoar = "azsoar.cli:app"
+
+[tool.setuptools]
+packages = ["azsoar"]          # Explicitly only include the 'azsoar' package
+package-dir = {"" = "."}
+include-package-data = true
+
+[tool.setuptools.package-data]
+azsoar = ["templates/**/*", "test/**/*"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["samples/*", "tests/*", "docs/*", "*.log", "playbooks/*"]
