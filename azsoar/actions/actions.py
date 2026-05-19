@@ -76,24 +76,24 @@ class ResponseActions:
             return {"action": "disable_user", "status": "success"}
         except Exception as e:
             return {"action": "disable_user", "status": "failed", "error": str(e)}
-
-     async def execute(self, action_name: str, **kwargs) -> Dict:
-        """Unified executor with flexible name matching"""
-        action_map = {
-            "isolate-vm": self.isolate_vm,
-            "revoke-sessions": self.revoke_user_sessions,
-            "force-password-reset": self.force_password_reset,
-            "block-ip": self.block_ip_nsg,
-            "disable-user": self.disable_user,
-            # Allow snake_case too
-            "isolate_vm": self.isolate_vm,
-            "revoke_sessions": self.revoke_user_sessions,
-            "force_password_reset": self.force_password_reset,
-            "block_ip": self.block_ip_nsg,
-            "disable_user": self.disable_user,
-        }
+            
+    async def execute(self, action_name: str, **kwargs) -> Dict:
+         """Unified executor with flexible name matching"""
+         action_map = {
+             "isolate-vm": self.isolate_vm,
+             "revoke-sessions": self.revoke_user_sessions,
+             "force-password-reset": self.force_password_reset,
+             "block-ip": self.block_ip_nsg,
+             "disable-user": self.disable_user,
+             # Allow snake_case too
+             "isolate_vm": self.isolate_vm,
+             "revoke_sessions": self.revoke_user_sessions,
+             "force_password_reset": self.force_password_reset,
+             "block_ip": self.block_ip_nsg,
+             "disable_user": self.disable_user,
+         }
         
         if action_name not in action_map:
             raise ValueError(f"Unknown action: {action_name}\nAvailable: {list(action_map.keys())}")
-        
+            
         return await action_map[action_name](**kwargs)
