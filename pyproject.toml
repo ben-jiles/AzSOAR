@@ -5,7 +5,9 @@ description = "Azure Sentinel SOAR Automation Framework"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
-authors = [{ name = "Benjamin Jiles", email = "ben at cyphershell dot tech" }]   # Change as needed
+authors = [
+    { name = "Benjamin Jiles" }
+]
 keywords = ["azure", "sentinel", "soar", "security", "automation", "incident-response"]
 
 dependencies = [
@@ -22,13 +24,23 @@ dev = ["pytest", "black", "ruff", "mypy"]
 [project.scripts]
 azsoar = "azsoar.cli:app"
 
+# ==================== Packaging Configuration ====================
 [tool.setuptools]
-packages = ["azsoar"]          # Explicitly only include the 'azsoar' package
+packages = ["azsoar"]                    # Only include the azsoar package
 package-dir = {"" = "."}
 include-package-data = true
+zip-safe = false
 
 [tool.setuptools.package-data]
-azsoar = ["templates/**/*", "test/**/*"]
+azsoar = ["templates/**/*", "*.yaml", "*.json"]
 
 [tool.setuptools.exclude-package-data]
-"*" = ["samples/*", "tests/*", "docs/*", "*.log", "playbooks/*"]
+"*" = [
+    "samples/*",
+    "tests/*",
+    "docs/*",
+    "playbooks/*",
+    "*.log",
+    ".venv",
+    ".git"
+]
