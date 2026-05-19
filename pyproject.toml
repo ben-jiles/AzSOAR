@@ -10,7 +10,7 @@ keywords = ["azure", "sentinel", "soar", "security", "automation"]
 
 dependencies = [
     "typer>=0.9.0",
-    "azure-identity>=1.16.0",
+    "azure-identity>=1.25.0",
     "azure-mgmt-logic>=10.0.0",
     "azure-mgmt-monitor>=6.0.0",
     "msgraph-sdk>=1.0.0",
