@@ -88,5 +88,15 @@ class ResponseActions:
         
         if action_name not in action_map:
             raise ValueError(f"Unknown action: {action_name}\nAvailable: {list(action_map.keys())}")
+
+        action_func = action_map[action_name]
+
+        # Filter kwargs to only what the function actually accepts
+        import inspect
+        sig = inspect.signature(action_func)
+        valid_params = {p.name for p in sig.parameters.values()
+                        if p.name != 'self'}
+
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
         
-        return await action_map[action_name](**kwargs)
+        return await action_func(**filtered_kwargs)
