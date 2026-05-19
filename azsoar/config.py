@@ -90,28 +90,24 @@ class AzSOARConfig(BaseModel):
         console.print(f"[green]✅ Configuration saved for profile '{profile}'[/]")
 
     def get_credential(self):
-        """Return the appropriate Azure credential"""
+        """Return the appropriate Azure credential with better error messages"""
         try:
             if self.auth_method == "cli":
+                console.print("[yellow]Using Azure CLI authentication...[/]")
                 return AzureCliCredential()
             elif self.auth_method == "managed":
+                console.print("[yellow]Using Managed Identity...[/]")
                 return ManagedIdentityCredential()
-            elif self.auth_method == "sp" and self.client_id and self.client_secret:
-                return ClientSecretCredential(
-                    tenant_id=self.tenant_id,
-                    client_id=self.client_id,
-                    client_secret=self.client_secret,
-                )
+            elif self.auth_method == "sp":
+                if not (self.client_id and self.client_secret and self.tenant_id):
+                    raise ValueError("Service Principal requires client_id, client_secret, and tenant_id")
+                console.print("[yellow]Using Service Principal authentication...[/]")
+                return ClientSecretCredential(...)
             else:
-                # Default (most flexible)
-                return DefaultAzureCredential(
-                    exclude_environment_credential=False,
-                    exclude_managed_identity_credential=False,
-                    exclude_shared_token_cache_credential=False,
-                    exclude_visual_studio_credential=True,
-                    exclude_powershell_credential=False,
-                    exclude_cli_credential=False,
-                )
+                console.print("[yellow]Using DefaultAzureCredential (recommended)...[/]")
+                return DefaultAzureCredential()
         except Exception as e:
-            console.print(f"[red]❌ Failed to create credential: {e}[/]")
+            console.print(f"[red]❌ Authentication failed:[/] {e}")
+            if "Azure CLI not found" in str(e):
+                console.print("[yellow]💡 Tip: Install Azure CLI or switch to --auth default[/]")
             raise
