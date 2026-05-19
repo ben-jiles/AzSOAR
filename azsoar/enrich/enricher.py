@@ -3,7 +3,7 @@ from datetime import datetime
 from rich.console import Console
 from azure.identity import DefaultAzureCredential
 import requests
-from msgraph_sdk import GraphServiceClient
+from msgraph import GraphServiceClient
 
 console = Console()
 
