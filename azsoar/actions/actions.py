@@ -28,6 +28,7 @@ class ResponseActions:
             return {"action": "isolate_vm", "status": "success", "details": "VM powered off"}
         except Exception as e:
             return {"action": "isolate_vm", "status": "failed", "error": str(e)}
+            
 
     async def revoke_user_sessions(self, user_principal: str) -> Dict:
         """Revoke all sessions for a user"""
@@ -71,7 +72,7 @@ class ResponseActions:
             return {"action": "disable_user", "status": "failed", "error": str(e)}
 
     async def execute(self, action_name: str, **kwargs) -> Dict:
-        """Unified executor with flexible name matching"""
+        """Unified executor with smart parameter filtering + logging"""
         action_map = {
             "isolate-vm": self.isolate_vm,
             "revoke-sessions": self.revoke_user_sessions,
@@ -88,15 +89,29 @@ class ResponseActions:
         
         if action_name not in action_map:
             raise ValueError(f"Unknown action: {action_name}\nAvailable: {list(action_map.keys())}")
-
+        
         action_func = action_map[action_name]
-
-        # Filter kwargs to only what the function actually accepts
+        
+        # Filter kwargs to only what the function accepts
         import inspect
         sig = inspect.signature(action_func)
-        valid_params = {p.name for p in sig.parameters.values()
-                        if p.name != 'self'}
-
+        valid_params = {p.name for p in sig.parameters.values() if p.name != 'self'}
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
         
-        return await action_func(**filtered_kwargs)
+        # Execute the action
+        result = await action_func(**filtered_kwargs)
+        
+        # === CENTRALIZED LOGGING ===
+        try:
+            from ..monitoring.logger import execution_logger
+            execution_logger.log_execution(
+                playbook_name="manual-action",           # or pass playbook name if available
+                action=action_name,
+                status=result.get("status", "unknown"),
+                details=result,
+                incident_id=kwargs.get("incident_id")
+            )
+        except Exception as log_err:
+            console.print(f"[yellow]Warning: Could not log execution: {log_err}[/]")
+        
+        return result
