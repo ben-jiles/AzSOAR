@@ -2,10 +2,36 @@
   "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
   "contentVersion": "1.0.0.0",
   "parameters": { "workspaceId": { "type": "string" } },
-  "triggers": { /* Same Sentinel trigger */ },
+  "triggers": {
+    "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+      "type": "Microsoft.Sentinel",
+      "inputs": {
+        "body": { "alertRuleId": "" }
+      }
+    }
+  },
   "actions": {
-    "Revoke_All_Sessions": { /* Same as above */ },
-    "Force_Password_Reset": { /* Same as above */ },
+    "Revoke_All_Sessions": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "graph" },
+        "method": "post",
+        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}/revokeSignInSessions"
+      },
+      "runAfter": { "Get_User_Info": ["Succeeded"] }
+    },
+    "Force_Password_Reset": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "graph" },
+        "method": "patch",
+        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}",
+        "body": {
+          "passwordProfile": { "forceChangePasswordNextSignIn": true }
+        }
+      },
+      "runAfter": { "Revoke_User_Sessions": ["Succeeded"] }
+    },
     "Disable_User_If_Critical": {
       "type": "ApiConnection",
       "inputs": {
