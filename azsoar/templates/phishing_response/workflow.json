@@ -7,69 +7,55 @@
   "triggers": {
     "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
       "type": "Microsoft.Sentinel",
-      "inputs": {
-        "body": { "alertRuleId": "" }
-      }
+      "inputs": { "body": { "alertRuleId": "" } }
     }
   },
   "actions": {
-    "Enrich_Incident": {
-      "type": "ApiConnection",
-      "inputs": {
-        "host": { "connectionName": "azuresentinel" },
-        "method": "get",
-        "path": "/Incidents/@{triggerBody()?['objectId']}"
-      },
-      "runAfter": {}
+    "Parse_Incident": {
+      "type": "ParseJson",
+      "inputs": { "content": "@triggerBody()" }
     },
-    "Get_User_Info": {
-      "type": "ApiConnection",
-      "inputs": {
-        "host": { "connectionName": "graph" },
-        "method": "get",
-        "path": "/users/@{body('Enrich_Incident')?['properties']?['additionalData']?['entities'][0]?['userPrincipalName']}"
-      },
-      "runAfter": { "Enrich_Incident": ["Succeeded"] }
-    },
-    "Revoke_User_Sessions": {
+    "Revoke_Sessions": {
       "type": "ApiConnection",
       "inputs": {
         "host": { "connectionName": "graph" },
         "method": "post",
-        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}/revokeSignInSessions"
-      },
-      "runAfter": { "Get_User_Info": ["Succeeded"] }
+        "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}/revokeSignInSessions"
+      }
     },
     "Force_Password_Reset": {
       "type": "ApiConnection",
       "inputs": {
         "host": { "connectionName": "graph" },
         "method": "patch",
-        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}",
-        "body": {
-          "passwordProfile": { "forceChangePasswordNextSignIn": true }
-        }
+        "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}",
+        "body": { "passwordProfile": { "forceChangePasswordNextSignIn": true } }
       },
-      "runAfter": { "Revoke_User_Sessions": ["Succeeded"] }
+      "runAfter": { "Revoke_Sessions": ["Succeeded"] }
     },
-    "Block_Sender_Domain": {
-      "type": "ApiConnection",
-      "inputs": { /* Add Defender or Exchange block */ },
-      "runAfter": { "Force_Password_Reset": ["Succeeded"] }
+    "Conditional_Disable_Account": {
+      "type": "If",
+      "expression": "@equals(body('Parse_Incident')?['properties']?['severity'], 'High')",
+      "actions": {
+        "Disable_User": {
+          "type": "ApiConnection",
+          "inputs": {
+            "host": { "connectionName": "graph" },
+            "method": "patch",
+            "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}",
+            "body": { "accountEnabled": false }
+          }
+        }
+      }
     },
-    "Update_Incident_Resolved": {
+    "Update_Incident": {
       "type": "ApiConnection",
       "inputs": {
         "host": { "connectionName": "azuresentinel" },
         "method": "put",
         "path": "/Incidents/@{triggerBody()?['objectId']}",
-        "body": {
-          "status": "Resolved",
-          "severity": "Low",
-          "comments": "Automated response by AzSOAR Phishing Playbook"
-        }
-      },
-      "runAfter": { "Block_Sender_Domain": ["Succeeded"] }
+        "body": { "status": "Resolved", "severity": "Medium" }
+      }
     }
   }
 }
