@@ -246,11 +246,14 @@ def analytics():
 @app.command()
 def dashboard():
     """Launch the AzSOAR Web Dashboard"""
-    import subprocess
-    console.print("[bold cyan]Launching AzSOAR Dashboard...[/]")
-    console.print("Open your browser at http://localhost:8501")
+    console.print("[bold cyan]🚀 Launching AzSOAR Dashboard...[/]")
+    console.print("📍 Opening → http://localhost:8501")
     
-    subprocess.run(["streamlit", "run", "azsoar/dashboard.py"])
+    import subprocess
+    try:
+        subprocess.run(["streamlit", "run", "azsoar/dashboard.py"], check=True)
+    except FileNotFoundError:
+        console.print("[red]Error: Streamlit not found. Make sure it's installed.[/]")
 
 
 if __name__ == "__main__":
