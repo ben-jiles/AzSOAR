@@ -78,3 +78,14 @@ az deployment group create \\
   --resource-group YOUR_RG \\
   --template-file main.bicep \\
   --parameters workspaceId={self.config.workspace_id or 'YOUR-WORKSPACE-ID'}
+  Description
+This playbook was generated for {template_name.replace('_', ' ').title()} scenarios using the AzSOAR framework.
+Next Steps
+
+Review and customize workflow.json
+Deploy using the command above
+Test locally with azsoar test
+
+
+Generated with ❤️ by AzSOAR
+"""
