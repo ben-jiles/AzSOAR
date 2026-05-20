@@ -33,6 +33,8 @@ azsoar config --tenant <TENANT_ID> --subscription <SUBSCRIPTION_ID> --workspace 
 azsoar login
 ```
 
+Ensure you have Azure CLI installed as a prerequisite for login.
+
 ### Generate & Test Your First Playbook
 
 ```bash
