@@ -190,6 +190,33 @@ def action(
     except Exception as e:
         console.print(f"[red]❌ Action failed:[/] {e}")
 
+@app.command()
+def test(
+    playbook: Path = typer.Argument(..., help="Path to playbook directory"),
+    scenario: str = typer.Option("phishing", "--scenario", "-s", help="phishing, identity, ransomware"),
+    output: Path = typer.Option(None, "--output", "-o"),
+    profile: str = typer.Option("default", "--profile", "-p"),
+):
+    """Test a playbook locally with simulated incident"""
+    from .test.simulator import SentinelSimulator
+    import json
+    
+    console.print(f"[bold cyan]Running local test for:[/] {playbook}")
+    
+    simulator = SentinelSimulator()
+    mock_incident = simulator.create_mock_incident(scenario)
+    
+    # Save mock for future use
+    mock_path = simulator.save_mock(mock_incident)
+    
+    result = simulator.run_simulation(playbook, mock_incident)
+    
+    if output:
+        output.write_text(json.dumps(result, indent=2))
+        console.print(f"[green]✅ Test report saved to:[/] {output}")
+    else:
+        console.print_json(data=result)
+
 
 if __name__ == "__main__":
     app()
