@@ -1,29 +1,25 @@
 {
   "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {
-    "workspaceId": {
-      "type": "string"
-    }
-  },
-  "triggers": {
-    "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
-      "type": "Microsoft.Sentinel",
-      "inputs": {
-        "body": {
-          "alertRuleId": ""
-        }
-      }
-    }
-  },
+  "parameters": { "workspaceId": { "type": "string" } },
+  "triggers": { /* Same Sentinel trigger */ },
   "actions": {
-    "Enrich_Incident": {
+    "Revoke_All_Sessions": { /* Same as above */ },
+    "Force_Password_Reset": { /* Same as above */ },
+    "Disable_User_If_Critical": {
       "type": "ApiConnection",
       "inputs": {
-        "host": {
-          "connectionName": "azuremonitorlogs"
-        }
+        "host": { "connectionName": "graph" },
+        "method": "patch",
+        "path": "/users/@{variables('userId')}",
+        "body": { "accountEnabled": false }
       }
-    }
+    },
+    "Block_Source_IP": { /* Call Azure Firewall or NSG */ },
+    "Notify_On_Teams": {
+      "type": "ApiConnection",
+      "inputs": { "host": { "connectionName": "teams" } }
+    },
+    "Update_Incident": { /* Mark as Resolved or Assigned */ }
   }
 }
