@@ -217,6 +217,32 @@ def test(
     else:
         console.print_json(data=result)
 
+@app.command()
+def history(limit: int = typer.Option(20, "--limit", "-n")):
+    """Show recent playbook/action execution history"""
+    from .monitoring.logger import execution_logger
+    logs = execution_logger.get_execution_history(limit)
+    
+    console.print(f"[bold cyan]Last {len(logs)} executions:[/]")
+    for log in logs[-10:]:  # Show last 10
+        color = "green" if log["status"] == "success" else "red"
+        console.print(f"[{color}]{log['timestamp'][:19]}[/] | {log['action']} | {log['playbook']}")
+
+
+@app.command()
+def analytics():
+    """Show SOAR execution analytics"""
+    from .monitoring.logger import execution_logger
+    stats = execution_logger.get_analytics()
+    
+    console.print(Panel.fit(
+        f"Total Executions : [bold]{stats['total_executions']}[/]\n"
+        f"Success Rate     : [bold green]{stats['success_rate']}%[/]\n"
+        f"Last 7 Days      : [bold]{stats['last_7_days']}[/]",
+        title="AzSOAR Analytics",
+        border_style="cyan"
+    ))
+
 
 if __name__ == "__main__":
     app()
