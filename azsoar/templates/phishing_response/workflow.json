@@ -2,17 +2,13 @@
   "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "workspaceId": {
-      "type": "string"
-    }
+    "workspaceId": { "type": "string" }
   },
   "triggers": {
     "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
       "type": "Microsoft.Sentinel",
       "inputs": {
-        "body": {
-          "alertRuleId": ""
-        }
+        "body": { "alertRuleId": "" }
       }
     }
   },
@@ -20,10 +16,60 @@
     "Enrich_Incident": {
       "type": "ApiConnection",
       "inputs": {
-        "host": {
-          "connectionName": "azuremonitorlogs"
+        "host": { "connectionName": "azuresentinel" },
+        "method": "get",
+        "path": "/Incidents/@{triggerBody()?['objectId']}"
+      },
+      "runAfter": {}
+    },
+    "Get_User_Info": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "graph" },
+        "method": "get",
+        "path": "/users/@{body('Enrich_Incident')?['properties']?['additionalData']?['entities'][0]?['userPrincipalName']}"
+      },
+      "runAfter": { "Enrich_Incident": ["Succeeded"] }
+    },
+    "Revoke_User_Sessions": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "graph" },
+        "method": "post",
+        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}/revokeSignInSessions"
+      },
+      "runAfter": { "Get_User_Info": ["Succeeded"] }
+    },
+    "Force_Password_Reset": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "graph" },
+        "method": "patch",
+        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}",
+        "body": {
+          "passwordProfile": { "forceChangePasswordNextSignIn": true }
         }
-      }
+      },
+      "runAfter": { "Revoke_User_Sessions": ["Succeeded"] }
+    },
+    "Block_Sender_Domain": {
+      "type": "ApiConnection",
+      "inputs": { /* Add Defender or Exchange block */ },
+      "runAfter": { "Force_Password_Reset": ["Succeeded"] }
+    },
+    "Update_Incident_Resolved": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": { "connectionName": "azuresentinel" },
+        "method": "put",
+        "path": "/Incidents/@{triggerBody()?['objectId']}",
+        "body": {
+          "status": "Resolved",
+          "severity": "Low",
+          "comments": "Automated response by AzSOAR Phishing Playbook"
+        }
+      },
+      "runAfter": { "Block_Sender_Domain": ["Succeeded"] }
     }
   }
 }
