@@ -21,6 +21,8 @@ dependencies = [
     "azure-mgmt-compute>=30.0.0",
     "azure-mgmt-network>=25.0.0",
     "azure-mgmt-storage>=21.0.0",
+    "streamlit>=1.28.0",
+    "plotly>=5.0.0",
 ]
 
 [project.optional-dependencies]
