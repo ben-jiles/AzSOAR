@@ -243,6 +243,15 @@ def analytics():
         border_style="cyan"
     ))
 
+@app.command()
+def dashboard():
+    """Launch the AzSOAR Web Dashboard"""
+    import subprocess
+    console.print("[bold cyan]Launching AzSOAR Dashboard...[/]")
+    console.print("Open your browser at http://localhost:8501")
+    
+    subprocess.run(["streamlit", "run", "azsoar/dashboard.py"])
+
 
 if __name__ == "__main__":
     app()
