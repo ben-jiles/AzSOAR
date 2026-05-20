@@ -1,9 +1,16 @@
 param workspaceId string
-param location string = 'eastus'
+param location string = resourceGroup().location
+param playbookName string = 'azsoar-ransomware-containment'
 
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
-  name: '${playbook_name}'
+  name: playbookName
   location: location
+  tags: {
+    CreatedBy: 'AzSOAR'
+    Template: 'Ransomware-Containment'
+    Severity: 'Critical'
+    Purpose: 'Automated ransomware containment'
+  }
   identity: {
     type: 'SystemAssigned'
   }
@@ -14,7 +21,9 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         value: workspaceId
       }
     }
+    state: 'Enabled'
   }
 }
 
 output logicAppId string = logicApp.id
+output principalId string = logicApp.identity.principalId
