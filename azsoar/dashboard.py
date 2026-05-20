@@ -1,12 +1,13 @@
 import streamlit as st
 import json
 from pathlib import Path
-from datetime import datetime
 import plotly.express as px
 
-from .monitoring.logger import execution_logger
-from .test.simulator import SentinelSimulator
-from .config import AzSOARConfig
+# Clean imports (no relative imports)
+from azsoar.monitoring.logger import execution_logger
+from azsoar.test.simulator import SentinelSimulator
+from azsoar.config import AzSOARConfig
+from azsoar.generator import PlaybookGenerator
 
 st.set_page_config(page_title="AzSOAR Dashboard", layout="wide")
 st.title("🚀 AzSOAR - Azure Sentinel SOAR Dashboard")
