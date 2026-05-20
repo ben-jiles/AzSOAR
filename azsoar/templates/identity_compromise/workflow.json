@@ -1,51 +1,61 @@
 {
   "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": { "workspaceId": { "type": "string" } },
+  "parameters": {
+    "workspaceId": { "type": "string" }
+  },
   "triggers": {
     "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
       "type": "Microsoft.Sentinel",
-      "inputs": {
-        "body": { "alertRuleId": "" }
-      }
+      "inputs": { "body": { "alertRuleId": "" } }
     }
   },
   "actions": {
-    "Revoke_All_Sessions": {
+    "Parse_Incident": {
+      "type": "ParseJson",
+      "inputs": { "content": "@triggerBody()" }
+    },
+    "Revoke_Sessions": {
       "type": "ApiConnection",
       "inputs": {
         "host": { "connectionName": "graph" },
         "method": "post",
-        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}/revokeSignInSessions"
-      },
-      "runAfter": { "Get_User_Info": ["Succeeded"] }
+        "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}/revokeSignInSessions"
+      }
     },
     "Force_Password_Reset": {
       "type": "ApiConnection",
       "inputs": {
         "host": { "connectionName": "graph" },
         "method": "patch",
-        "path": "/users/@{body('Get_User_Info')?['userPrincipalName']}",
-        "body": {
-          "passwordProfile": { "forceChangePasswordNextSignIn": true }
-        }
+        "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}",
+        "body": { "passwordProfile": { "forceChangePasswordNextSignIn": true } }
       },
-      "runAfter": { "Revoke_User_Sessions": ["Succeeded"] }
+      "runAfter": { "Revoke_Sessions": ["Succeeded"] }
     },
-    "Disable_User_If_Critical": {
-      "type": "ApiConnection",
-      "inputs": {
-        "host": { "connectionName": "graph" },
-        "method": "patch",
-        "path": "/users/@{variables('userId')}",
-        "body": { "accountEnabled": false }
+    "Conditional_Disable_Account": {
+      "type": "If",
+      "expression": "@equals(body('Parse_Incident')?['properties']?['severity'], 'High')",
+      "actions": {
+        "Disable_User": {
+          "type": "ApiConnection",
+          "inputs": {
+            "host": { "connectionName": "graph" },
+            "method": "patch",
+            "path": "/users/@{body('Parse_Incident')?['properties']?['additionalData']?['entities']?[0]?['userPrincipalName']}",
+            "body": { "accountEnabled": false }
+          }
+        }
       }
     },
-    "Block_Source_IP": { /* Call Azure Firewall or NSG */ },
-    "Notify_On_Teams": {
+    "Update_Incident": {
       "type": "ApiConnection",
-      "inputs": { "host": { "connectionName": "teams" } }
-    },
-    "Update_Incident": { /* Mark as Resolved or Assigned */ }
+      "inputs": {
+        "host": { "connectionName": "azuresentinel" },
+        "method": "put",
+        "path": "/Incidents/@{triggerBody()?['objectId']}",
+        "body": { "status": "Resolved", "severity": "Medium" }
+      }
+    }
   }
 }
