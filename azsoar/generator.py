@@ -22,11 +22,16 @@ class PlaybookGenerator:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        template_path = self.template_dir / template_name
+        # Normalize template name (hyphen → underscore)
+        folder_name = template_name.replace("-", "_")
+        template_path = self.template_dir / folder_name
+
         if not template_path.exists():
+            available = [d.name.replace("_", "-") for d in self.template_dir.iterdir() 
+                        if d.is_dir() and not d.name.startswith(".")]
             raise ValueError(
                 f"Template '{template_name}' not found.\n"
-                f"Available: phishing-response, identity-compromise, ransomware-containment"
+                f"Available templates: {', '.join(available) or 'None'}"
             )
 
         playbook_name = custom_name or f"azsoar-{template_name.replace('_', '-')}"
