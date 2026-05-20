@@ -19,7 +19,7 @@
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/YOURUSERNAME/azsoar.git
+git clone https://github.com/ben-jiles/azsoar.git
 cd azsoar
 
 python -m venv .venv
